@@ -16,6 +16,7 @@
 #include "gesture/GestureEngine.h"
 #include "game/GameRound.h"
 #include "render/TextRenderer.h"
+#include "audio/SFX.h"
 
 // ---- Layout constants ----
 constexpr int WINDOW_W = 800;
@@ -110,6 +111,7 @@ int main(int argc, char* argv[]) {
     // ---- Text renderer ----
     TextRenderer text;
     text.init(renderer, "assets/fonts");
+    SFX.init();
 
     // ---- Game state ----
     GameRound round;
@@ -119,6 +121,7 @@ int main(int argc, char* argv[]) {
     bool roundActive = false;
 
     auto startNewRound = [&]() {
+        SFX.splash();
         RoundConfig cfg = getConfig(difficulty);
         round.onRoundEnd = [&](bool w) {
             if (w) wins++;
@@ -158,7 +161,10 @@ int main(int argc, char* argv[]) {
                     startNewRound();
                     break;
                 case SDLK_h:
-                    if (roundActive) round.useHint();
+                    if (roundActive) {
+                        round.useHint();
+                        SFX.hint();
+                    }
                     break;
                 }
             }
@@ -226,8 +232,13 @@ int main(int argc, char* argv[]) {
         ImGui::SameLine(500);
 
         // Controls hint
-        if (!roundActive)
+        if (!roundActive) {
             ImGui::TextColored(ImVec4(0.6f,0.6f,0.8f,1), "SPACE=start  R=restart  H=hint");
+            ImGui::SameLine(500);
+            ImGui::SetNextItemWidth(120);
+            if (ImGui::SliderFloat("Vol", &SFX.masterVolume, 0.0f, 1.0f))
+                {} // value updates live via masterVolume reference
+        }
         else
             ImGui::TextColored(ImVec4(0.6f,0.6f,0.8f,1), "R=restart  H=hint  ESC=quit");
 
@@ -317,6 +328,7 @@ int main(int argc, char* argv[]) {
 
     // -- Cleanup --
     gesture.stop();
+    SFX.destroy();
     text.destroy();
     ImGui_ImplSDLRenderer2_Shutdown();
     ImGui_ImplSDL2_Shutdown();

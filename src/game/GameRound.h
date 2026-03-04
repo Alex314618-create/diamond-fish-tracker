@@ -1,5 +1,6 @@
 #pragma once
 #include <SDL2/SDL.h>
+#include "audio/SFX.h"
 #include <vector>
 #include <string>
 #include <cmath>
@@ -113,9 +114,20 @@ public:
         case GamePhase::Track:
             timer -= dt / 1000.0f;
             for (auto& f : fishes) f.update(fishes, bounds, dt);
+            // Tick sounds for last 5 seconds
+            {
+                int prevSec = (int)ceilf(timer + dt / 1000.0f);
+                int currSec = (int)ceilf(timer);
+                if (prevSec != currSec && currSec <= 5 && currSec > 0) {
+                    if (currSec <= 2) SFX.tickUrgent();
+                    else              SFX.tick();
+                }
+            }
             if (timer <= 0.0f) {
                 timer = 0;
                 phase = GamePhase::Select;
+                SFX.timeUp();
+                SFX.stopAmbient();
                 startSpread();
             }
             break;
@@ -235,6 +247,7 @@ private:
             int idx = diamond.targetFishIdx;
             fishes[idx].isSwallowing  = true;
             fishes[idx].swallowFrame  = 0;
+            SFX.swallow();
         }
 
         if (swallowPending_) {
@@ -264,10 +277,12 @@ private:
         phase = GamePhase::Track;
         timer = config_.trackTime;
         showOverlay("TRACK!", 0.8f);
+        SFX.startAmbient();
     }
 
     void startSpread() {
         isSpreadingOut = true;
+        SFX.spread();
         spreadComplete = false;
         canSelect      = false;
 
@@ -354,6 +369,7 @@ private:
 
         if (correct) {
             fishes[idx].revealing = true;
+            SFX.correct();
             diamondFishIdx.erase(
                 std::remove(diamondFishIdx.begin(), diamondFishIdx.end(), idx),
                 diamondFishIdx.end());
@@ -373,6 +389,7 @@ private:
                 if (onRoundEnd) onRoundEnd(true);
             }
         } else {
+            SFX.wrong();
             // Wrong fish - reveal all remaining diamond fish
             for (int ri : diamondFishIdx) {
                 fishes[ri].revealing = true;
