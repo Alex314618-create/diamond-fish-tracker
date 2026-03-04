@@ -1,6 +1,7 @@
 #pragma once
 #include <SDL2/SDL.h>
 #include "audio/SFX.h"
+#include "game/ResultScreen.h"
 #include <vector>
 #include <string>
 #include <cmath>
@@ -44,8 +45,9 @@ public:
     bool  spreadComplete  = false;
     bool  canSelect       = false;
 
-    // Callback fired when the round ends
-    std::function<void(bool won)> onRoundEnd;
+    // Callback fired when the round ends.
+    // Parameters: won, timeTaken (seconds)
+    std::function<void(bool won, float timeTaken)> onRoundEnd;
 
     // ---- Public API ----
 
@@ -218,6 +220,7 @@ private:
     int   currentDiamondDrop_ = 0;
     int   trackPhaseClicks_   = 0;
     float revealTimer_    = 0;
+    float selectStartTime_ = 0.0f;   // SDL_GetTicks() when select phase begins
 
     void showOverlay(const std::string& txt, float duration = 1.5f) {
         overlay.text    = txt;
@@ -282,6 +285,7 @@ private:
 
     void startSpread() {
         isSpreadingOut = true;
+        selectStartTime_ = (float)SDL_GetTicks();
         SFX.spread();
         spreadComplete = false;
         canSelect      = false;
@@ -386,7 +390,8 @@ private:
                 diamond.visible = true;
                 won = true;
                 showOverlay("EXCELLENT!", 99.0f);
-                if (onRoundEnd) onRoundEnd(true);
+                float timeTaken = ((float)SDL_GetTicks() - selectStartTime_) / 1000.0f;
+                if (onRoundEnd) onRoundEnd(true, timeTaken);
             }
         } else {
             SFX.wrong();
@@ -399,7 +404,7 @@ private:
             }
             lost = true;
             showOverlay("WRONG FISH!", 99.0f);
-            if (onRoundEnd) onRoundEnd(false);
+            if (onRoundEnd) onRoundEnd(false, 0.0f);
         }
     }
 };
