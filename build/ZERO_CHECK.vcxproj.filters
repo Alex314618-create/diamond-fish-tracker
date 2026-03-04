@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\ROG\Desktop\diamond-fish-cpp\build\CMakeFiles\1d9294fe3dfa2e3fe74cded133e897fe\generate.stamp.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{A669CD43-04F9-3F17-BD73-21076E51BCAE}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
